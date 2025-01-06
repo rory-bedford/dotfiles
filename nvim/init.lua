@@ -1,64 +1,30 @@
-require("config.lazy")
+-- Minimal Neovim configuration
 
--- Enable clipboard support
-vim.opt.clipboard = "unnamedplus"
+-- jj as escape
+vim.api.nvim_set_keymap('i', 'jj', '<ESC>', { noremap = true, silent = true })
 
--- key mapping for pasting from the system clipboard
-vim.api.nvim_set_keymap("n", "<leader>p", '"+p', { noremap = true, silent = true })
+-- Ctrl+o to add a blank line below and stay in normal mode
+vim.api.nvim_set_keymap('n', '<C-o>', 'o<Esc>', { noremap = true, silent = true })
 
--- Disable compatibility to old-time vi
-vim.o.compatible = false
+-- General settings
+vim.opt.number = true            -- Show line numbers
+vim.opt.relativenumber = true    -- Show relative line numbers
+vim.opt.tabstop = 4              -- Number of spaces for a tab
+vim.opt.shiftwidth = 4           -- Number of spaces to use for autoindent
+vim.opt.expandtab = true         -- Convert tabs to spaces
+vim.opt.smartindent = true       -- Smart autoindenting
+vim.opt.wrap = false             -- Disable line wrapping
+vim.opt.termguicolors = true     -- Enable true color support
+vim.opt.cursorline = true        -- Highlight the current line
+vim.opt.scrolloff = 8            -- Keep 8 lines visible above/below the cursor
+vim.opt.sidescrolloff = 8        -- Keep 8 columns visible left/right of the cursor
+vim.opt.hlsearch = true          -- Highlight search results
+vim.opt.incsearch = true         -- Show search matches as you type
+vim.opt.ignorecase = true        -- Ignore case in search
+vim.opt.smartcase = true         -- Override ignorecase if search contains uppercase
+vim.opt.splitbelow = true        -- New horizontal splits go below
+vim.opt.splitright = true        -- New vertical splits go to the right
 
--- Show matching
-vim.o.showmatch = true
+-- Enable mouse support
+vim.opt.mouse = 'a'
 
--- Case insensitive search
-vim.o.ignorecase = true
-
--- Middle-click paste with mouse
-vim.o.mouse = "v"
-
--- Highlight search
-vim.o.hlsearch = true
-
--- Incremental search
-vim.o.incsearch = true
-
--- Number of columns occupied by a tab
-vim.o.tabstop = 4
-
--- Use spaces instead of tabs
-vim.o.expandtab = true
-
--- Width for autoindents
-vim.o.shiftwidth = 4
-
--- Indent a new line the same amount as the line just typed
-vim.o.autoindent = true
-
--- Add line numbers
-vim.o.number = true
-
--- Get bash-like tab completions
-vim.o.wildmode = "longest,list"
-
--- Enable auto-indenting depending on file type
-vim.cmd("filetype plugin indent on")
-
--- Enable syntax highlighting
-vim.cmd("syntax on")
-
--- Enable mouse click
-vim.o.mouse = "a"
-
--- Using system clipboard
-vim.o.clipboard = "unnamedplus"
-
--- Speed up scrolling in Neovim
-vim.o.ttyfast = true
-
--- Map Ctrl-o to open a new line below the current line
-vim.api.nvim_set_keymap("n", "<C-o>", ":normal o<CR>", { noremap = true, silent = true })
-
--- Map jj to escape key in insert mode
-vim.api.nvim_set_keymap("i", "jj", "<Esc>", { noremap = true, silent = true })
