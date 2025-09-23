@@ -24,31 +24,6 @@ if [ -d ~/.bashrc.d ]; then
 fi
 unset rc
 
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/rbedford/.mamba/bin/conda' 'shell.bash' 'hook' 2>/dev/null)"
-if [ $? -eq 0 ]; then
-	eval "$__conda_setup"
-else
-	if [ -f "/home/rbedford/.mamba/etc/profile.d/conda.sh" ]; then
-		. "/home/rbedford/.mamba/etc/profile.d/conda.sh"
-	else
-		export PATH="/home/rbedford/.mamba/bin:$PATH"
-	fi
-fi
-unset __conda_setup
-
-if [ -f "/home/rbedford/.mamba/etc/profile.d/mamba.sh" ]; then
-	. "/home/rbedford/.mamba/etc/profile.d/mamba.sh"
-fi
-# <<< conda initialize <<<
-
-export PATH=$PATH:/usr/local/go/bin
-
 # aliases
-alias vim="nvim"
 alias clip="xclip -selection clipboard"
 alias la="ls -a"
-
-# add custom scripts to path
-export PATH="$PATH:$HOME/.scripts"
