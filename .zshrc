@@ -111,3 +111,7 @@ alias paste="xclip -selection clipboard -o"
 
 # Loads uv default env
 . "$HOME/.local/bin/env"
+
+# Vim keybindings inside zsh
+bindkey -v
+bindkey jj vi-cmd-mode
