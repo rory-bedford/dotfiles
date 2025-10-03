@@ -1,6 +1,6 @@
 " Minimal Vim configuration
 " jk as escape
-inoremap jk <ESC>
+inoremap jk <Esc>
 
 " Ctrl+o to add a blank line below and stay in normal mode
 nnoremap <C-o> o<Esc>
@@ -24,6 +24,3 @@ set smartcase                   " Override ignorecase if search contains upperca
 set splitbelow                  " New horizontal splits go below
 set splitright                  " New vertical splits go to the right
 set clipboard=unnamedplus       " Use system clipboard
-
-" Enable mouse support
-set mouse=a
