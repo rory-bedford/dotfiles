@@ -114,4 +114,4 @@ alias paste="xclip -selection clipboard -o"
 
 # Vim keybindings inside zsh
 bindkey -v
-bindkey jj vi-cmd-mode
+bindkey -M viins 'jk' vi-cmd-mode
