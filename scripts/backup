@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+# backup — git backup for Zotero database and Obsidian vault
+#
+# Zotero:   git tracks database files only (not PDFs)
+# Obsidian: git tracks entire vault
+#
+# Usage:
+#     backup              # back up both
+#     backup zotero       # Zotero only
+#     backup obsidian     # Obsidian only
+#     backup init         # first-time setup
+#
+# TODO: Add rsync of full Zotero library (incl. PDFs) to remote server.
+#       Blocked on SSH non-interactive command execution hanging on balin.
+#       Debug ~/.zshrc / ~/.zshenv / /etc/profile.d on remote host.
+
+set -euo pipefail
+
+# --- Configuration -----------------------------------------------------------
+
+ZOTERO_DIR="$HOME/Zotero"
+OBSIDIAN_DIR="$HOME/Obsidian"
+
+ZOTERO_GIT_REMOTE=""          # e.g. git@github.com:username/zotero-backup.git
+OBSIDIAN_GIT_REMOTE=""        # e.g. git@github.com:username/obsidian-vault.git
+
+COMMIT_MSG="$(date '+%d/%m/%Y')"
+
+# --- Helpers -----------------------------------------------------------------
+
+info()  { echo -e "  \033[1;34m→\033[0m $*"; }
+ok()    { echo -e "  \033[1;32m✓\033[0m $*"; }
+warn()  { echo -e "  \033[1;33m!\033[0m $*"; }
+error() { echo -e "  \033[1;31m✗\033[0m $*" >&2; }
+
+# --- Git helpers -------------------------------------------------------------
+
+git_init_repo() {
+    local dir="$1"
+    local remote="$2"
+    local name="$3"
+
+    info "Initialising $name git repo in $dir"
+    cd "$dir"
+
+    if [ -d .git ]; then
+        warn "Already a git repo, skipping init"
+    else
+        git init
+    fi
+
+    if [ -n "$remote" ]; then
+        if git remote get-url origin > /dev/null 2>&1; then
+            warn "Remote 'origin' already set"
+        else
+            git remote add origin "$remote"
+            info "Added remote: $remote"
+        fi
+    else
+        warn "No git remote set for $name — edit the script config"
+    fi
+
+    ok "$name git repo ready"
+}
+
+git_commit_and_push() {
+    local dir="$1"
+    local name="$2"
+
+    cd "$dir"
+
+    if [ ! -d .git ]; then
+        error "$name: not a git repo. Run 'backup init' first."
+        return 1
+    fi
+
+    if git diff --cached --quiet && git diff --quiet; then
+        ok "$name: no changes"
+        return 0
+    fi
+
+    git commit -m "$COMMIT_MSG"
+    ok "$name: committed ($COMMIT_MSG)"
+
+    if git remote get-url origin > /dev/null 2>&1; then
+        info "$name: pushing..."
+        git push -u origin main 2>/dev/null \
+            || git push -u origin master 2>/dev/null \
+            || warn "$name: push failed — check your remote"
+        ok "$name: pushed"
+    fi
+}
+
+# --- Init --------------------------------------------------------------------
+
+do_init() {
+    # Zotero
+    git_init_repo "$ZOTERO_DIR" "$ZOTERO_GIT_REMOTE" "Zotero"
+    cd "$ZOTERO_DIR"
+    cat > .gitignore << 'EOF'
+# Only track database files — ignore everything else
+*
+!.gitignore
+!zotero.sqlite
+!zotero.sqlite-*
+!better-bibtex.sqlite
+!better-bibtex.sqlite-*
+EOF
+    git add .gitignore
+    git commit -m "Initial commit: add .gitignore" 2>/dev/null || true
+
+    # Obsidian
+    git_init_repo "$OBSIDIAN_DIR" "$OBSIDIAN_GIT_REMOTE" "Obsidian"
+    cd "$OBSIDIAN_DIR"
+    if [ ! -f .gitignore ]; then
+        cat > .gitignore << 'EOF'
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.trash/
+EOF
+        git add .gitignore
+        git commit -m "Initial commit: add .gitignore" 2>/dev/null || true
+    fi
+}
+
+# --- Zotero ------------------------------------------------------------------
+
+do_zotero() {
+    echo ""
+    info "Zotero"
+
+    if pgrep -x zotero > /dev/null 2>&1; then
+        warn "Zotero is running — WAL may not be flushed"
+    fi
+
+    cd "$ZOTERO_DIR"
+    if [ -d .git ]; then
+        git add -f \
+            zotero.sqlite \
+            better-bibtex.sqlite \
+            2>/dev/null || true
+
+        for f in zotero.sqlite-wal zotero.sqlite-shm \
+                 better-bibtex.sqlite-wal better-bibtex.sqlite-shm; do
+            [ -f "$f" ] && git add -f "$f"
+        done
+
+        git_commit_and_push "$ZOTERO_DIR" "Zotero"
+    else
+        warn "Zotero: no git repo — run 'backup init'"
+    fi
+}
+
+# --- Obsidian ----------------------------------------------------------------
+
+do_obsidian() {
+    echo ""
+    info "Obsidian"
+
+    cd "$OBSIDIAN_DIR"
+    if [ -d .git ]; then
+        git add -A
+        git_commit_and_push "$OBSIDIAN_DIR" "Obsidian"
+    else
+        warn "Obsidian: no git repo — run 'backup init'"
+    fi
+}
+
+# --- Main --------------------------------------------------------------------
+
+case "${1:-all}" in
+    init)
+        do_init
+        ;;
+    zotero)
+        do_zotero
+        ;;
+    obsidian)
+        do_obsidian
+        ;;
+    all)
+        do_zotero
+        do_obsidian
+        ;;
+    *)
+        echo "Usage: backup [init|zotero|obsidian|all]"
+        echo ""
+        echo "  init      First-time setup for both repos"
+        echo "  zotero    Zotero database git backup"
+        echo "  obsidian  Obsidian vault git backup"
+        echo "  all       Everything (default)"
+        exit 1
+        ;;
+esac
