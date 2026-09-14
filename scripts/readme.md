@@ -1,10 +1,3 @@
-## zotero-remarkable-sync
-- Location: ~/.local/bin/zotero-remarkable-sync
-- State: ~/.local/share/zotero-remarkable/state.json
-- Dependencies: Python 3.9+, ssh/scp to reMarkable
-- Installed: 2026-03-23
-- Notes: Sync Zotero PDFs to reMarkable via SCP. Mirrors folder structure, names as "Author (Year) - Title". Flags: `--dry-run`, `--status`, `--force`.
-
 ## backup
 - Location: ~/.local/bin/backup
 - Installed: 2026-03-23
