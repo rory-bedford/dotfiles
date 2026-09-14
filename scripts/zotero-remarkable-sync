@@ -44,7 +44,12 @@ STATE_FILE = STATE_DIR / "state.json"
 REMARKABLE_HOST = "remarkable"
 REMARKABLE_XOCHITL = "/home/root/.local/share/remarkable/xochitl"
 
-ROOT_FOLDER_NAME = "Library"
+ROOT_FOLDER_NAME = "Zotero"
+
+# Top-level Zotero collection that maps onto the root folder itself rather
+# than getting a subfolder. Kept separate so renaming the root on the tablet
+# can't reintroduce a duplicate folder.
+ZOTERO_ROOT_COLLECTION = "Library"
 
 # --- Zotero database reading -------------------------------------------------
 
@@ -367,10 +372,10 @@ def ensure_collection_folders(
         coll = needed_collections[coll_id]
         parent_id = coll["parent_id"]
 
-        # If a top-level collection has the same name as the root folder,
-        # map it to the root folder instead of creating a subfolder
+        # The top-level root collection maps to the root folder instead of
+        # creating a subfolder
         is_top_level = parent_id is None or parent_id not in needed_collections
-        if is_top_level and coll["name"] == ROOT_FOLDER_NAME:
+        if is_top_level and coll["name"] == ZOTERO_ROOT_COLLECTION:
             folders[str_id] = root_uuid
             continue
 
@@ -527,9 +532,21 @@ def sync(dry_run: bool = False, force: bool = False):
         needed = get_all_needed_collections(zotero_pdfs, all_collections)
         tree: dict[str | None, list] = {}  # parent_coll_id -> [(name, coll_id)]
 
+        # The root collection is the root folder itself, so draw its
+        # contents at the top level (mirrors ensure_collection_folders)
+        root_colls = {
+            cid for cid, c in needed.items()
+            if (c["parent_id"] is None or c["parent_id"] not in needed)
+            and c["name"] == ZOTERO_ROOT_COLLECTION
+        }
+
         # Group collections by parent
         for coll_id, coll in needed.items():
+            if coll_id in root_colls:
+                continue
             parent = coll["parent_id"] if coll["parent_id"] in needed else None
+            if parent in root_colls:
+                parent = None
             tree.setdefault(parent, []).append((coll["name"], coll_id))
 
         # Group PDFs by their leaf collection
@@ -538,6 +555,8 @@ def sync(dry_run: bool = False, force: bool = False):
             info = zotero_pdfs[key]
             cp = info["collection_path"]
             leaf = cp[-1] if cp else None
+            if leaf in root_colls:
+                leaf = None
             pdfs_by_coll.setdefault(leaf, []).append(info)
 
         def print_tree(parent_id, indent=1):
@@ -552,7 +571,7 @@ def sync(dry_run: bool = False, force: bool = False):
 
         print(f"\nFolder structure on reMarkable:")
         print(f"  {ROOT_FOLDER_NAME}/")
-        print_tree(None)
+        print_tree(None, 2)
         # PDFs not in any collection
         for info in sorted(pdfs_by_coll.get(None, []), key=lambda x: x["visible_name"]):
             size_mb = Path(info["path"]).stat().st_size / (1024 * 1024)
