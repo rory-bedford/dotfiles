@@ -27,3 +27,8 @@ set clipboard=unnamedplus       " Use system clipboard
 
 " Enable mouse support
 set mouse=a
+
+" Colours
+syntax on
+set background=dark
+colorscheme habamax

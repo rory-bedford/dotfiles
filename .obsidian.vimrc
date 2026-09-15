@@ -24,3 +24,13 @@ set smartcase                   " Override ignorecase if search contains upperca
 set splitbelow                  " New horizontal splits go below
 set splitright                  " New vertical splits go to the right
 set clipboard=unnamedplus       " Use system clipboard
+
+" Insert citation at cursor
+exmap cite obcommand zotero-integration:insert-markdown-citation
+nmap <leader>c :cite
+imap <C-c> <Esc>:cite<CR>
+
+" Follow links (including external)
+exmap follow obcommand editor:follow-link
+nmap gf :follow
+nmap <leader>o :follow
