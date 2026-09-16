@@ -36,7 +36,4 @@ colorscheme habamax
 " Markdown
 filetype plugin on              " Needed for vim-markdown's ftplugin
 " vim-markdown: git clone https://github.com/preservim/vim-markdown ~/.vim/pack/plugins/start/vim-markdown
-" glow: https://github.com/charmbracelet/glow (binary in ~/.local/bin)
-" Space p saves and previews the note in glow, in a split (q closes it). Kept in
-" an autocmd so VSCodeVim, which also reads this file, keeps its own Space p.
-autocmd FileType markdown nnoremap <buffer> <space>p :update<CR>:vertical terminal ++close glow -p %<CR>
+let g:vim_markdown_folding_disabled = 1
