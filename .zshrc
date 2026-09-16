@@ -109,6 +109,9 @@ fi
 alias copy="xclip -selection clipboard"
 alias paste="xclip -selection clipboard -o"
 
+# glow at full terminal width (its config only takes a fixed width)
+glow() { command glow -w "$COLUMNS" "$@"; }
+
 # Loads uv default env
 . "$HOME/.local/bin/env"
 
